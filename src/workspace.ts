@@ -15,8 +15,7 @@ export class MonacoWorkspace implements Workspace {
     protected readonly onDidCloseTextDocumentEmitter = new Emitter<TextDocument>();
     protected readonly onDidChangeTextDocumentEmitter = new Emitter<TextDocumentDidChangeEvent>();
 
-    constructor(
-        protected readonly m2p: MonacoToProtocolConverter) {
+    constructor(protected readonly m2p: MonacoToProtocolConverter) {
         for (const model of monaco.editor.getModels()) {
             this.addModel(model);
         }
