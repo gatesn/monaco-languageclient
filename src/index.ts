@@ -3,6 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 export * from './disposable';
+export * from './commands';
 export * from './console-window';
 export * from './languages';
 export * from './workspace';
@@ -10,4 +11,3 @@ export * from './converter';
 export * from './services';
 export * from 'vscode-base-languageclient/lib/base';
 export * from 'vscode-base-languageclient/lib/connection';
-export * from 'vscode-base-languageclient/lib/services';
