@@ -2,8 +2,9 @@
  * Copyright (c) 2017 TypeFox GmbH (http://www.typefox.io). All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { MonacoToProtocolConverter } from './converter';
+import { MonacoToProtocolConverter, ProtocolToMonacoConverter } from './converter';
 import { Workspace, TextDocumentDidChangeEvent, TextDocument, Event, Emitter } from "vscode-base-languageclient/lib/services";
+import { WorkspaceEdit, TextEdit } from 'vscode-base-languageclient/lib/base';
 import IModel = monaco.editor.IModel;
 
 export class MonacoWorkspace implements Workspace {
@@ -15,8 +16,7 @@ export class MonacoWorkspace implements Workspace {
     protected readonly onDidCloseTextDocumentEmitter = new Emitter<TextDocument>();
     protected readonly onDidChangeTextDocumentEmitter = new Emitter<TextDocumentDidChangeEvent>();
 
-    constructor(
-        protected readonly m2p: MonacoToProtocolConverter) {
+    constructor(protected readonly p2m: ProtocolToMonacoConverter, protected readonly m2p: MonacoToProtocolConverter) {
         for (const model of monaco.editor.getModels()) {
             this.addModel(model);
         }
@@ -81,6 +81,38 @@ export class MonacoWorkspace implements Workspace {
 
     get onDidChangeTextDocument(): Event<TextDocumentDidChangeEvent> {
         return this.onDidChangeTextDocumentEmitter.event;
+    }
+
+    public applyEdit(workspaceEdit: WorkspaceEdit): Thenable<boolean> {
+        let applied = true;
+        if (workspaceEdit.documentChanges) {
+            for (const change of workspaceEdit.documentChanges) {
+                if (change.textDocument.version && change.textDocument.version >= 0) {
+                    const textDocument = this.documents.get(change.textDocument.uri);
+                    if (textDocument && textDocument.version === change.textDocument.version) {
+                        monaco.editor.getModel(monaco.Uri.parse(textDocument.uri)).pushEditOperations(
+                            [],  // Do not try and preserve editor selections.
+                            change.edits.map((edit: TextEdit) => {
+                                return {
+                                    identifier: {major: 1, minor: 0},
+                                    range: this.p2m.asRange(edit.range),
+                                    text: edit.newText,
+                                    forceMoveMarkers: true,
+                                };
+                            }),
+                            () => [],  // Do not try and preserve editor selections.
+                        );
+                    } else {
+                        applied = false;
+                    }
+                } else {
+                    applied = false;
+                }
+            }
+        } else {
+            applied = false;
+        }
+        return Promise.resolve(applied);
     }
 
 }
