@@ -1,5 +1,5 @@
 import { MonacoToProtocolConverter, ProtocolToMonacoConverter } from './converter';
-import { Workspace, TextDocumentDidChangeEvent, TextDocument, Event, Emitter } from "vscode-base-languageclient/lib/services";
+import { Workspace, TextDocumentDidChangeEvent, TextDocument, Event, Emitter } from 'vscode-base-languageclient/lib/services';
 import { WorkspaceEdit } from 'vscode-base-languageclient/lib/base';
 import IModel = monaco.editor.IModel;
 export declare class MonacoWorkspace implements Workspace {
@@ -19,5 +19,5 @@ export declare class MonacoWorkspace implements Workspace {
     readonly onDidOpenTextDocument: Event<TextDocument>;
     readonly onDidCloseTextDocument: Event<TextDocument>;
     readonly onDidChangeTextDocument: Event<TextDocumentDidChangeEvent>;
-    applyEdit(workspaceEdit: WorkspaceEdit): Thenable<boolean>;
+    applyEdit(workspaceEdit: WorkspaceEdit): Promise<boolean>;
 }

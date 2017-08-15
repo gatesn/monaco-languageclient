@@ -3,9 +3,10 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import { MonacoToProtocolConverter, ProtocolToMonacoConverter } from './converter';
-import { Workspace, TextDocumentDidChangeEvent, TextDocument, Event, Emitter } from "vscode-base-languageclient/lib/services";
+import { Workspace, TextDocumentDidChangeEvent, TextDocument, Event, Emitter } from 'vscode-base-languageclient/lib/services';
 import { WorkspaceEdit, TextEdit } from 'vscode-base-languageclient/lib/base';
 import IModel = monaco.editor.IModel;
+import IResourceEdit = monaco.languages.IResourceEdit;
 
 export class MonacoWorkspace implements Workspace {
 
@@ -80,36 +81,46 @@ export class MonacoWorkspace implements Workspace {
         return this.onDidChangeTextDocumentEmitter.event;
     }
 
-    public applyEdit(workspaceEdit: WorkspaceEdit): Thenable<boolean> {
-        let applied = true;
-        if (workspaceEdit.documentChanges) {
-            for (const change of workspaceEdit.documentChanges) {
-                if (change.textDocument.version && change.textDocument.version >= 0) {
-                    const textDocument = this.documents.get(change.textDocument.uri);
-                    if (textDocument && textDocument.version === change.textDocument.version) {
-                        monaco.editor.getModel(monaco.Uri.parse(textDocument.uri)).pushEditOperations(
-                            [],  // Do not try and preserve editor selections.
-                            change.edits.map((edit: TextEdit) => {
-                                return {
-                                    identifier: {major: 1, minor: 0},
-                                    range: this.p2m.asRange(edit.range),
-                                    text: edit.newText,
-                                    forceMoveMarkers: true,
-                                };
-                            }),
-                            () => [],  // Do not try and preserve editor selections.
-                        );
-                    } else {
-                        applied = false;
-                    }
-                } else {
-                    applied = false;
-                }
-            }
-        } else {
-            applied = false;
+    public applyEdit(workspaceEdit: WorkspaceEdit): Promise<boolean> {
+        const edit: monaco.languages.WorkspaceEdit = this.p2m.asWorkspaceEdit(workspaceEdit);
+
+        // Collect all referenced models
+        const models = edit.edits.reduce((acc: {[uri: string]: monaco.editor.IModel}, currentEdit) => {
+            acc[currentEdit.resource.toString()] = monaco.editor.getModel(currentEdit.resource);
+            return acc;
+        }, {});
+
+        // If any of the models do not exist, refuse to apply the edit.
+        if (!Object.keys(models).map(uri => models[uri]).every(model => !!model)) {
+            return Promise.resolve(false);
         }
-        return Promise.resolve(applied);
+
+        // Group edits by resource so we can batch them when applying
+        const editsByResource = edit.edits.reduce((acc: {[uri: string]: IResourceEdit[]}, currentEdit) => {
+            const uri = currentEdit.resource.toString();
+            if (!(uri in acc)) {
+                acc[uri] = [];
+            }
+            acc[uri].push(currentEdit);
+            return acc;
+        }, {});
+
+        // Apply edits for each resource
+        Object.keys(editsByResource).forEach(uri => {
+            models[uri].pushEditOperations(
+                [],  // Do not try and preserve editor selections.
+                editsByResource[uri].map(resourceEdit => {
+                    return {
+                        identifier: {major: 1, minor: 0},
+                        range: monaco.Range.lift(resourceEdit.range),
+                        text: resourceEdit.newText,
+                        forceMoveMarkers: true,
+                    };
+                }),
+                () => [],  // Do not try and preserve editor selections.
+            );
+        });
+        return Promise.resolve(true);
     }
 
 }
