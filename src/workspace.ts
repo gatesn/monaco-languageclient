@@ -4,7 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 import { MonacoToProtocolConverter, ProtocolToMonacoConverter } from './converter';
 import { Workspace, TextDocumentDidChangeEvent, TextDocument, Event, Emitter } from 'vscode-base-languageclient/lib/services';
-import { WorkspaceEdit, TextEdit } from 'vscode-base-languageclient/lib/base';
+import { WorkspaceEdit } from 'vscode-base-languageclient/lib/base';
 import IModel = monaco.editor.IModel;
 import IResourceEdit = monaco.languages.IResourceEdit;
 
