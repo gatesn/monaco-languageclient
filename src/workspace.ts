@@ -85,10 +85,12 @@ export class MonacoWorkspace implements Workspace {
         const edit: monaco.languages.WorkspaceEdit = this.p2m.asWorkspaceEdit(workspaceEdit);
 
         // Collect all referenced models
-        const models: {[uri: string] monaco.editor.IModel} = edit.edits.reduce((acc: {[uri: string]: monaco.editor.IModel}, currentEdit) => {
-            acc[currentEdit.resource.toString()] = monaco.editor.getModel(currentEdit.resource);
-            return acc;
-        }, {});
+        const models: {[uri: string]: monaco.editor.IModel} = edit.edits.reduce(
+            (acc: {[uri: string]: monaco.editor.IModel}, currentEdit) => {
+                acc[currentEdit.resource.toString()] = monaco.editor.getModel(currentEdit.resource);
+                return acc;
+            }, {}
+        );
 
         // If any of the models do not exist, refuse to apply the edit.
         if (!Object.keys(models).map(uri => models[uri]).every(model => !!model)) {
@@ -96,14 +98,16 @@ export class MonacoWorkspace implements Workspace {
         }
 
         // Group edits by resource so we can batch them when applying
-        const editsByResource: {[uri: string]: IResourceEdit[]} = edit.edits.reduce((acc: {[uri: string]: IResourceEdit[]}, currentEdit) => {
-            const uri = currentEdit.resource.toString();
-            if (!(uri in acc)) {
-                acc[uri] = [];
-            }
-            acc[uri].push(currentEdit);
-            return acc;
-        }, {});
+        const editsByResource: {[uri: string]: IResourceEdit[]} = edit.edits.reduce(
+            (acc: {[uri: string]: IResourceEdit[]}, currentEdit) => {
+                const uri = currentEdit.resource.toString();
+                if (!(uri in acc)) {
+                    acc[uri] = [];
+                }
+                acc[uri].push(currentEdit);
+                return acc;
+            }, {}
+        );
 
         // Apply edits for each resource
         Object.keys(editsByResource).forEach(uri => {
