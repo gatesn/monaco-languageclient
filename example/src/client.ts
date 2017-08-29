@@ -23,7 +23,8 @@ const value = `{
     "line_endings": "unix"
 }`;
 const editor = monaco.editor.create(document.getElementById("container")!, {
-    model: monaco.editor.createModel(value, 'json', monaco.Uri.parse('inmemory://model.json'))
+    model: monaco.editor.createModel(value, 'json', monaco.Uri.parse('inmemory://model.json')),
+    glyphMargin: true
 });
 
 // create the web socket
