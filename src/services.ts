@@ -16,6 +16,6 @@ export function createMonacoServices(editor: monaco.editor.IStandaloneCodeEditor
         commands: new MonacoCommands(editor),
         languages: new MonacoLanguages(p2m, m2p),
         workspace: new MonacoWorkspace(p2m, m2p),
-        window: new ConsoleWindow(),
+        window: new ConsoleWindow()
     }
 }
