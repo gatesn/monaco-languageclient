@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import { Disposable } from "vscode-jsonrpc";
-import { BaseLanguageClient, MessageTransports } from "vscode-languageclient";
+import { MessageTransports } from "vscode-languageclient";
 import { DisposableCollection, WebSocketMessageReader, WebSocketMessageWriter } from 'vscode-ws-jsonrpc';
 import { toSocket } from "vscode-ws-jsonrpc/src/connection";
 import { MonacoLanguageClient } from "../../src/client";
@@ -64,7 +64,7 @@ listen({
     }
 });
 
-function createLanguageClient(transports: MessageTransports): BaseLanguageClient {
+function createLanguageClient(transports: MessageTransports): MonacoLanguageClient {
     return new MonacoLanguageClient({
             id: 'client',
             name: 'Sample Language Client',
