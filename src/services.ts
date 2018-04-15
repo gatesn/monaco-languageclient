@@ -2,6 +2,7 @@
  * Copyright (c) 2017 TypeFox GmbH (http://www.typefox.io). All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
+/*
 import { BaseLanguageClient } from "vscode-base-languageclient/lib/base";
 import { MonacoToProtocolConverter, ProtocolToMonacoConverter } from "./converter";
 import { MonacoLanguages } from "./languages";
@@ -17,3 +18,4 @@ export function createMonacoServices(): BaseLanguageClient.IServices {
         window: new ConsoleWindow()
     }
 }
+*/

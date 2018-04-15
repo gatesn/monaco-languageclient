@@ -1,9 +1,10 @@
-/* --------------------------------------------------------------------------------------------
+/** --------------------------------------------------------------------------------------------
  * Copyright (c) 2017 TypeFox GmbH (http://www.typefox.io). All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { MessageActionItem, MessageType } from 'vscode-base-languageclient/lib/protocol';
-import { Window, OutputChannel } from 'vscode-base-languageclient/lib/services';
+/*
+import { Window, OutputChannel } from 'vscode-base-languageclient';
+import { MessageActionItem, MessageType } from "vscode-languageserver-protocol";
 
 export class ConsoleWindow implements Window {
     protected readonly channels = new Map<string, OutputChannel>();
@@ -42,3 +43,4 @@ export class ConsoleWindow implements Window {
         return channel;
     }
 }
+*/

@@ -2,7 +2,8 @@
  * Copyright (c) 2017 TypeFox GmbH (http://www.typefox.io). All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { DiagnosticCollection, Diagnostic } from 'vscode-base-languageclient/lib/services';
+/*
+import { Diagnostic } from "vscode-languageserver-types";
 import { DisposableCollection, Disposable } from './disposable';
 import { ProtocolToMonacoConverter } from './converter';
 import IModel = monaco.editor.IModel;
@@ -48,8 +49,8 @@ export class MonacoModelDiagnostics implements Disposable {
     protected _markers: IMarkerData[];
     protected _diagnostics: Diagnostic[];
     constructor(
-        uri: string, 
-        diagnostics: Diagnostic[], 
+        uri: string,
+        diagnostics: Diagnostic[],
         readonly owner: string,
         protected readonly p2m: ProtocolToMonacoConverter)  {
         this.uri = monaco.Uri.parse(uri);
@@ -87,3 +88,4 @@ export class MonacoModelDiagnostics implements Disposable {
         }
     }
 }
+*/

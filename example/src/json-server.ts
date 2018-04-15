@@ -3,16 +3,22 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 import * as fs from "fs";
-import { xhr, XHRResponse, getErrorStatusDescription } from 'request-light';
-import Uri from 'vscode-uri';
+import { getErrorStatusDescription, xhr, XHRResponse } from 'request-light';
+import { getLanguageService, JSONDocument, LanguageService } from "vscode-json-languageservice";
 import { MessageReader, MessageWriter } from "vscode-jsonrpc";
-import { IConnection, TextDocuments, createConnection } from 'vscode-languageserver';
+import { createConnection, IConnection, TextDocuments } from 'vscode-languageserver';
+import { DocumentRangeFormattingParams, TextDocumentPositionParams } from "vscode-languageserver-protocol";
 import {
-    TextDocument, Diagnostic, CompletionList, CompletionItem, Hover,
-    SymbolInformation, DocumentSymbolParams, TextEdit
+    CompletionItem,
+    CompletionList,
+    Diagnostic,
+    DocumentSymbolParams,
+    Hover,
+    SymbolInformation,
+    TextDocument,
+    TextEdit
 } from "vscode-languageserver-types";
-import { TextDocumentPositionParams, DocumentRangeFormattingParams } from 'vscode-base-languageclient/lib/protocol';
-import { getLanguageService, LanguageService, JSONDocument } from "vscode-json-languageservice";
+import Uri from 'vscode-uri';
 
 export function start(reader: MessageReader, writer: MessageWriter): JsonServer {
     const connection = createConnection(reader, writer);
@@ -65,6 +71,7 @@ export class JsonServer {
                 }
             }
         });
+
         this.connection.onCompletion(params =>
             this.completion(params)
         );
@@ -97,7 +104,7 @@ export class JsonServer {
         return this.jsonService.findDocumentSymbols(document, jsonDocument);
     }
 
-    protected hover(params: TextDocumentPositionParams): Thenable<Hover> {
+    protected hover(params: TextDocumentPositionParams): Thenable<Hover | null> {
         const document = this.documents.get(params.textDocument.uri);
         const jsonDocument = this.getJSONDocument(document);
         return this.jsonService.doHover(document, params.position, jsonDocument);
@@ -123,7 +130,7 @@ export class JsonServer {
         return this.jsonService.doResolve(item);
     }
 
-    protected completion(params: TextDocumentPositionParams): Thenable<CompletionList> {
+    protected completion(params: TextDocumentPositionParams): Thenable<CompletionList | null> {
         const document = this.documents.get(params.textDocument.uri);
         const jsonDocument = this.getJSONDocument(document);
         return this.jsonService.doComplete(document, params.position, jsonDocument);

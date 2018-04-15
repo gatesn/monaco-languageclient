@@ -1,12 +1,13 @@
-/* --------------------------------------------------------------------------------------------
+/** --------------------------------------------------------------------------------------------
  * Copyright (c) 2017 TypeFox GmbH (http://www.typefox.io). All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import { listen, MessageConnection } from 'vscode-ws-jsonrpc';
-import {
-    BaseLanguageClient, CloseAction, ErrorAction,
-    createMonacoServices, createConnection
-} from 'monaco-languageclient';
+import { Disposable } from "vscode-jsonrpc";
+import { BaseLanguageClient, MessageTransports } from "vscode-languageclient";
+import { DisposableCollection, WebSocketMessageReader, WebSocketMessageWriter } from 'vscode-ws-jsonrpc';
+import { toSocket } from "vscode-ws-jsonrpc/src/connection";
+import { MonacoLanguageClient } from "../../src/client";
+
 const ReconnectingWebSocket = require('reconnecting-websocket');
 
 // register Monaco languages
@@ -29,38 +30,50 @@ monaco.editor.create(document.getElementById("container")!, {
 // create the web socket
 const url = createUrl('/sampleServer')
 const webSocket = createWebSocket(url);
+
+
+// TODO(gatesn): inline this back into the vscode-ws-jsonrpc fork
+export function listen(options: {
+    webSocket: WebSocket;
+    onConnection: (transports: MessageTransports) => Disposable;
+}) {
+    const { webSocket, onConnection } = options;
+    const disposables = new DisposableCollection();
+    webSocket.onopen = () => {
+        const socket = toSocket(webSocket);
+        const transports: MessageTransports = {
+            reader: new WebSocketMessageReader(socket),
+            writer: new WebSocketMessageWriter(socket),
+            // TODO(gatesn): implement detached by checking liveness of websocker
+        };
+        disposables.push(onConnection(transports));
+    };
+    webSocket.onclose = () => {
+        disposables.dispose();
+    }
+}
+
+
 // listen when the web socket is opened
 listen({
     webSocket,
-    onConnection: connection => {
+    onConnection: transports => {
         // create and start the language client
-        const languageClient = createLanguageClient(connection);
-        const disposable = languageClient.start();
-        connection.onClose(() => disposable.dispose());
+        const languageClient = createLanguageClient(transports);
+        return languageClient.start();
     }
 });
 
-const services = createMonacoServices();
-function createLanguageClient(connection: MessageConnection): BaseLanguageClient {
-    return new BaseLanguageClient({
-        name: "Sample Language Client",
-        clientOptions: {
-            // use a language id as a document selector
-            documentSelector: ['json'],
-            // disable the default error handler
-            errorHandler: {
-                error: () => ErrorAction.Continue,
-                closed: () => CloseAction.DoNotRestart
+function createLanguageClient(transports: MessageTransports): BaseLanguageClient {
+    return new MonacoLanguageClient({
+            id: 'client',
+            name: 'Sample Language Client',
+            clientOptions: {
+                documentSelector: ['json'],
             }
         },
-        services,
-        // create a language client connection from the JSON RPC connection on demand
-        connectionProvider: {
-            get: (errorHandler, closeHandler) => {
-                return Promise.resolve(createConnection(connection, errorHandler, closeHandler))
-            }
-        }
-    })
+        Promise.resolve(transports)
+    );
 }
 
 function createUrl(path: string): string {
